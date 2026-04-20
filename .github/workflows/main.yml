@@ -1,19 +1,34 @@
-name: API Key Test
-on: [push, workflow_dispatch] # workflow_dispatch는 버튼을 눌러 수동 실행하게 해줌
+name: Real API Key Test
+on: [workflow_dispatch]
 
 jobs:
-  test:
+  test-api:
     runs-on: ubuntu-latest
     steps:
-      - name: 시크릿 변수 확인하기
+      - name: API 실제 호출 및 상태 코드 확인
         env:
-          # 주의: 아래 'MY_SECRET_NAME' 부분을 본인이 Settings에 등록한 이름으로 똑같이 바꿔야 함
+          # 주의: 등록한 시크릿 이름으로 변경할 것
           MY_API_KEY: ${{ secrets.SK_API_KEY }} 
         run: |
-          if [ -z "$MY_API_KEY" ]; then
-            echo "❌ API 키를 찾을 수 없음 (이름이 틀렸거나 등록되지 않음)"
+          echo "API 서버에 테스트 요청을 전송 중..."
+          
+          # 아래 URL과 헤더 방식은 테스트하려는 API에 맞게 수정이 필요함 (아래는 OpenAI 예시)
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $MY_API_KEY" \
+            -H "Content-Type: application/json" \
+            https://api.openai.com/v1/models)
+          
+          echo "API 서버 응답 코드: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ 정상 작동 확인 (200 OK): 권한 및 한도 문제 없음"
+          elif [ "$HTTP_STATUS" -eq 401 ]; then
+            echo "❌ 인증 실패 (401 Unauthorized): 키가 잘못되었거나 폐기됨"
+            exit 1
+          elif [ "$HTTP_STATUS" -eq 429 ]; then
+            echo "❌ 한도 초과 (429 Too Many Requests): 크레딧 부족 또는 호출 제한"
             exit 1
           else
-            echo "✅ API 키가 정상적으로 불러와짐!"
-            echo "보안을 위해 실제 값은 화면에 *** 로 가려져서 보임"
+            echo "⚠️ 기타 오류 발생: 응답 코드 $HTTP_STATUS"
+            exit 1
           fi
