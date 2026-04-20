@@ -1,0 +1,19 @@
+name: API Key Test
+on: [push, workflow_dispatch] # workflow_dispatch는 버튼을 눌러 수동 실행하게 해줌
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 시크릿 변수 확인하기
+        env:
+          # 주의: 아래 'MY_SECRET_NAME' 부분을 본인이 Settings에 등록한 이름으로 똑같이 바꿔야 함
+          MY_API_KEY: ${{ secrets.MY_SECRET_NAME }} 
+        run: |
+          if [ -z "$MY_API_KEY" ]; then
+            echo "❌ API 키를 찾을 수 없음 (이름이 틀렸거나 등록되지 않음)"
+            exit 1
+          else
+            echo "✅ API 키가 정상적으로 불러와짐!"
+            echo "보안을 위해 실제 값은 화면에 *** 로 가려져서 보임"
+          fi
