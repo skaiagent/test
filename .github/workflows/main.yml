@@ -8,7 +8,7 @@ jobs:
       - name: 시크릿 변수 확인하기
         env:
           # 주의: 아래 'MY_SECRET_NAME' 부분을 본인이 Settings에 등록한 이름으로 똑같이 바꿔야 함
-          MY_API_KEY: ${{ secrets.MY_SECRET_NAME }} 
+          MY_API_KEY: ${{ secrets.SK_API_KEY }} 
         run: |
           if [ -z "$MY_API_KEY" ]; then
             echo "❌ API 키를 찾을 수 없음 (이름이 틀렸거나 등록되지 않음)"
